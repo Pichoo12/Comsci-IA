@@ -1,10 +1,12 @@
 import sys
 import json
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QStackedWidget, QListWidget, QListWidgetItem, QFrame
-from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QStackedWidget, QComboBox, QListWidget, QListWidgetItem, QHBoxLayout, QCalendarWidget
+from PyQt5.QtGui import QPalette, QColor, QPixmap, QFont, QMovie
 from PyQt5.QtCore import Qt
 from typing import List
+from datetime import datetime
 from Article import Article, ArticleDetailsDialog, ArticleManager
+from Calendar import Calendar, Event
 
 class User:
     def __init__(self, user_id: int, points: int, username: str, password: str, email: str, saved_articles: List[Article] = None):
@@ -25,7 +27,6 @@ class User:
     def logout(self) -> None:
         self.logged_in = False
 
-
 # Sample database of users
 users_db = []
 
@@ -44,11 +45,12 @@ def load_users():
                     username=user_data['username'],
                     password=user_data['password'],
                     email=user_data['email'],
-                    saved_articles=[Article(title=article['title'], description=article.get('description', '')) for article in user_data.get('saved_articles', [])]
+                    saved_articles=[Article(title=article['title']) for article in user_data.get('saved_articles', [])]
                 )
                 users_db.append(user)
     except (FileNotFoundError, json.JSONDecodeError):
         pass
+
 
 # Save users to JSON file
 def save_users():
@@ -60,7 +62,7 @@ def save_users():
             'username': user.username,
             'password': user.password,
             'email': user.email,
-            'saved_articles': [{'title': article.title, 'description': article.description} for article in user.saved_articles]
+            'saved_articles': [{'title': article.title} for article in user.saved_articles]
         })
     with open(USER_DATA_FILE, 'w') as file:
         json.dump(users_data, file, indent=4)
@@ -71,8 +73,16 @@ class LoginRegisterApp(QWidget):
         super().__init__()
         self.initUI()
         self.current_user = None
-        self.article_manager = ArticleManager()  # Create an instance of ArticleManager
+        self.article_manager = ArticleManager()
         load_users()
+
+        # Initialize calendar and holidays
+        holidays = [
+            Event(name="New Year's Day", date="2024-01-01"),
+            Event(name="Christmas Day", date="2024-12-25"),
+            Event(name="Independence Day", date="2024-07-04"),
+        ]
+        self.calendar = Calendar(events=[], holidays=holidays)
 
     def initUI(self):
         self.setWindowTitle("Login/Register System")
@@ -89,6 +99,19 @@ class LoginRegisterApp(QWidget):
         self.login_page = QWidget()
         self.login_layout = QVBoxLayout()
         self.login_page.setLayout(self.login_layout)
+
+        login_title = QLabel("News App")
+        login_title.setFont(QFont("Arial", 24, QFont.Bold))
+        login_title.setAlignment(Qt.AlignCenter)
+        login_title.setStyleSheet("color: white; margin-top: 5px; margin-bottom: 5px;")  # Decrease space above and below title
+        self.login_layout.addWidget(login_title)
+
+        login_gif = QLabel()
+        login_movie = QMovie("background.gif")
+        login_gif.setMovie(login_movie)
+        login_movie.start()
+        login_gif.setAlignment(Qt.AlignCenter)
+        self.login_layout.addWidget(login_gif)
 
         self.login_username = QLineEdit()
         self.login_username.setPlaceholderText("Username")
@@ -107,10 +130,25 @@ class LoginRegisterApp(QWidget):
         self.register_button.clicked.connect(self.open_register_page)
         self.login_layout.addWidget(self.register_button)
 
+        self.login_layout.setSpacing(10)
+
         # Register Page
         self.register_page = QWidget()
         self.register_layout = QVBoxLayout()
         self.register_page.setLayout(self.register_layout)
+
+        register_title = QLabel("News App")
+        register_title.setFont(QFont("Arial", 24, QFont.Bold))
+        register_title.setAlignment(Qt.AlignCenter)
+        register_title.setStyleSheet("color: white; margin-top: 10px; margin-bottom: 5px;")  # Decrease space above and below title
+        self.register_layout.addWidget(register_title)
+
+        register_gif = QLabel()
+        register_movie = QMovie("background.gif")
+        register_gif.setMovie(register_movie)
+        register_movie.start()
+        register_gif.setAlignment(Qt.AlignCenter)
+        self.register_layout.addWidget(register_gif)
 
         self.register_username = QLineEdit()
         self.register_username.setPlaceholderText("Username")
@@ -133,20 +171,54 @@ class LoginRegisterApp(QWidget):
         self.back_to_login_button.clicked.connect(self.open_login_page)
         self.register_layout.addWidget(self.back_to_login_button)
 
+        self.register_layout.setSpacing(10)
+
         # Main Page
         self.main_page = QWidget()
         self.main_layout = QVBoxLayout()
+
+        # Add Icon to top-right corner
+        main_top_layout = QHBoxLayout()
+        icon_label = QLabel()
+        icon_label.setPixmap(QPixmap("Icon.PNG").scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        main_top_layout.addStretch()
+        main_top_layout.addWidget(icon_label)
+        self.main_layout.addLayout(main_top_layout)
+
         self.main_page.setLayout(self.main_layout)
 
         self.main_label = QLabel("Welcome to the main page!")
-        self.main_label.setFont(QFont('Arial', 16, QFont.Bold))
-        self.main_label.setStyleSheet("color: white;")
         self.main_layout.addWidget(self.main_label)
 
+        # Search Bar
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Search for articles...")
+        self.search_bar.textChanged.connect(self.search_articles)  # Connect search bar to the search function
+        self.main_layout.addWidget(self.search_bar)
+
+        # Category Dropdown
+        self.category_dropdown = QComboBox()
+        self.category_dropdown.addItem("All Categories")
+        self.category_dropdown.addItem("Technology")
+        self.category_dropdown.addItem("Sports")
+        self.category_dropdown.addItem("Health")
+        self.category_dropdown.addItem("Business")
+        self.category_dropdown.addItem("Entertainment")
+        self.category_dropdown.addItem("Science")
+        self.category_dropdown.currentIndexChanged.connect(self.filter_articles_by_category)
+        self.main_layout.addWidget(self.category_dropdown)
+
+        # Calendar Button
+        self.calendar_button = QPushButton("Show Next Holiday")
+        self.calendar_button.clicked.connect(self.show_calendar)
+        self.main_layout.addWidget(self.calendar_button)
+
+        # Article List
         self.articles_list = QListWidget()
         self.articles_list.itemClicked.connect(self.show_article_details)
         self.main_layout.addWidget(self.articles_list)
 
+        # Logout Button
         self.logout_button = QPushButton("Logout")
         self.logout_button.clicked.connect(self.logout)
         self.main_layout.addWidget(self.logout_button)
@@ -210,42 +282,45 @@ class LoginRegisterApp(QWidget):
         self.stacked_widget.setCurrentWidget(self.login_page)
 
     def display_articles(self):
-        try:
-            articles = self.article_manager.fetch_articles()
-            self.articles_list.clear()
-            self.article_objects = []
+        articles = self.article_manager.fetch_articles()
+        self.filtered_articles = articles
+        self.show_articles(articles)
 
-            for article in articles:
-                title = article.title
-                description = article.description
-                self.article_objects.append(article)
+    def filter_articles_by_category(self):
+        selected_category = self.category_dropdown.currentText()
+        if selected_category == "All Categories":
+            filtered_articles = self.article_manager.fetch_articles()
+        else:
+            filtered_articles = self.article_manager.fetch_articles_by_category(selected_category)
+        self.show_articles(filtered_articles)
 
-                item = QListWidgetItem()
-                item.setText(f"Title: {title}\n\nDescription: {description[:100]}...\n")
-                item.setFont(QFont('Arial', 12))
-                item.setSizeHint(item.sizeHint() * 1.5)
-                item.setTextAlignment(Qt.AlignLeft)
-                item.setBackground(QColor(240, 240, 240))
-                self.articles_list.addItem(item)
+    def search_articles(self):
+        query = self.search_bar.text().strip().lower()
+        filtered_articles = [
+            article for article in self.filtered_articles
+            if query in article.title.lower()
+        ]
+        self.show_articles(filtered_articles)
 
-                separator = QListWidgetItem()
-                separator.setFlags(Qt.NoItemFlags)
-                separator.setSizeHint(item.sizeHint() * 0.3)
-                frame = QFrame()
-                frame.setFrameShape(QFrame.HLine)
-                frame.setFrameShadow(QFrame.Sunken)
-                self.articles_list.addItem(separator)
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+    def show_articles(self, articles):
+        self.articles_list.clear()
+        for article in articles:
+            item = QListWidgetItem(article.title)
+            self.articles_list.addItem(item)
 
     def show_article_details(self, item):
-        for article in self.article_objects:
-            if item.text().startswith(f"Title: {article.title}"):
+        for article in self.filtered_articles:
+            if article.title == item.text():
                 dialog = ArticleDetailsDialog(article)
                 dialog.exec_()
                 break
 
+    def show_calendar(self):
+        next_holiday = self.calendar.get_next_upcoming_holiday()
+        if next_holiday:
+            QMessageBox.information(self, "Next Holiday", f"The next holiday is {next_holiday.name} on {next_holiday.date.strftime('%Y-%m-%d')}.")
+        else:
+            QMessageBox.information(self, "Next Holiday", "There are no upcoming holidays.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,11 +1,10 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QStackedWidget
-from PyQt5.QtGui import QPalette, QColor
+import json
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QStackedWidget, QListWidget, QListWidgetItem, QFrame
+from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtCore import Qt
 from typing import List
-
-class Article:
-    def __init__(self, title: str):
-        self.title = title
+from Article import Article, ArticleDetailsDialog, ArticleManager
 
 class User:
     def __init__(self, user_id: int, points: int, username: str, password: str, email: str, saved_articles: List[Article] = None):
@@ -26,18 +25,58 @@ class User:
     def logout(self) -> None:
         self.logged_in = False
 
+
 # Sample database of users
 users_db = []
+
+# File to store user data
+USER_DATA_FILE = 'users.json'
+
+# Load users from JSON file
+def load_users():
+    try:
+        with open(USER_DATA_FILE, 'r') as file:
+            users_data = json.load(file)
+            for user_data in users_data:
+                user = User(
+                    user_id=user_data['user_id'],
+                    points=user_data['points'],
+                    username=user_data['username'],
+                    password=user_data['password'],
+                    email=user_data['email'],
+                    saved_articles=[Article(title=article['title'], description=article.get('description', '')) for article in user_data.get('saved_articles', [])]
+                )
+                users_db.append(user)
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
+# Save users to JSON file
+def save_users():
+    users_data = []
+    for user in users_db:
+        users_data.append({
+            'user_id': user.user_id,
+            'points': user.points,
+            'username': user.username,
+            'password': user.password,
+            'email': user.email,
+            'saved_articles': [{'title': article.title, 'description': article.description} for article in user.saved_articles]
+        })
+    with open(USER_DATA_FILE, 'w') as file:
+        json.dump(users_data, file, indent=4)
+
 
 class LoginRegisterApp(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
         self.current_user = None
+        self.article_manager = ArticleManager()  # Create an instance of ArticleManager
+        load_users()
 
     def initUI(self):
         self.setWindowTitle("Login/Register System")
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(100, 100, 600, 800)
 
         # Set background color to blue
         palette = self.palette()
@@ -100,7 +139,13 @@ class LoginRegisterApp(QWidget):
         self.main_page.setLayout(self.main_layout)
 
         self.main_label = QLabel("Welcome to the main page!")
+        self.main_label.setFont(QFont('Arial', 16, QFont.Bold))
+        self.main_label.setStyleSheet("color: white;")
         self.main_layout.addWidget(self.main_label)
+
+        self.articles_list = QListWidget()
+        self.articles_list.itemClicked.connect(self.show_article_details)
+        self.main_layout.addWidget(self.articles_list)
 
         self.logout_button = QPushButton("Logout")
         self.logout_button.clicked.connect(self.logout)
@@ -125,6 +170,7 @@ class LoginRegisterApp(QWidget):
             if user.login(username, password):
                 self.current_user = user
                 QMessageBox.information(self, "Login Successful", f"Welcome, {username}!")
+                self.display_articles()
                 self.stacked_widget.setCurrentWidget(self.main_page)
                 return
 
@@ -142,9 +188,16 @@ class LoginRegisterApp(QWidget):
         email = self.register_email.text().strip()
 
         if username and password and email:
+            # Check if username or email already exists
+            for user in users_db:
+                if user.username == username or user.email == email:
+                    QMessageBox.critical(self, "Registration Failed", "Username or email already exists.")
+                    return
+
             user_id = len(users_db) + 1
             new_user = User(user_id=user_id, points=0, username=username, password=password, email=email)
             users_db.append(new_user)
+            save_users()
             QMessageBox.information(self, "Registration Successful", "You have successfully registered!")
             self.open_login_page()
         else:
@@ -155,6 +208,44 @@ class LoginRegisterApp(QWidget):
             self.current_user.logout()
             self.current_user = None
         self.stacked_widget.setCurrentWidget(self.login_page)
+
+    def display_articles(self):
+        try:
+            articles = self.article_manager.fetch_articles()
+            self.articles_list.clear()
+            self.article_objects = []
+
+            for article in articles:
+                title = article.title
+                description = article.description
+                self.article_objects.append(article)
+
+                item = QListWidgetItem()
+                item.setText(f"Title: {title}\n\nDescription: {description[:100]}...\n")
+                item.setFont(QFont('Arial', 12))
+                item.setSizeHint(item.sizeHint() * 1.5)
+                item.setTextAlignment(Qt.AlignLeft)
+                item.setBackground(QColor(240, 240, 240))
+                self.articles_list.addItem(item)
+
+                separator = QListWidgetItem()
+                separator.setFlags(Qt.NoItemFlags)
+                separator.setSizeHint(item.sizeHint() * 0.3)
+                frame = QFrame()
+                frame.setFrameShape(QFrame.HLine)
+                frame.setFrameShadow(QFrame.Sunken)
+                self.articles_list.addItem(separator)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def show_article_details(self, item):
+        for article in self.article_objects:
+            if item.text().startswith(f"Title: {article.title}"):
+                dialog = ArticleDetailsDialog(article)
+                dialog.exec_()
+                break
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

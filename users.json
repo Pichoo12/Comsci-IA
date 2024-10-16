@@ -1,0 +1,18 @@
+[
+    {
+        "user_id": 1,
+        "points": 0,
+        "username": "z",
+        "password": "z",
+        "email": "z",
+        "saved_articles": []
+    },
+    {
+        "user_id": 2,
+        "points": 0,
+        "username": "buchi",
+        "password": "buchi",
+        "email": "buchi",
+        "saved_articles": []
+    }
+]

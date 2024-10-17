@@ -78,15 +78,36 @@ class LoginRegisterApp(QWidget):
 
         # Initialize calendar and holidays
         holidays = [
-            Event(name="New Year's Day", date="2024-01-01"),
-            Event(name="Christmas Day", date="2024-12-25"),
-            Event(name="Independence Day", date="2024-07-04"),
-        ]
+    Event(name="New Year's Day", date="2024-01-01"),
+    Event(name="Martin Luther King Jr. Day", date="2024-01-15"),
+    Event(name="Valentine's Day", date="2024-02-14"),
+    Event(name="Presidents' Day", date="2024-02-19"),
+    Event(name="St. Patrick's Day", date="2024-03-17"),
+    Event(name="Good Friday", date="2024-03-29"),
+    Event(name="Easter Sunday", date="2024-03-31"),
+    Event(name="Earth Day", date="2024-04-22"),
+    Event(name="Labor Day (International)", date="2024-05-01"),
+    Event(name="Mother's Day", date="2024-05-12"),
+    Event(name="Memorial Day", date="2024-05-27"),
+    Event(name="Father's Day", date="2024-06-16"),
+    Event(name="Independence Day", date="2024-07-04"),
+    Event(name="Labor Day (US)", date="2024-09-02"),
+    Event(name="Columbus Day", date="2024-10-14"),
+    Event(name="Halloween", date="2024-10-31"),
+    Event(name="Veterans Day", date="2024-11-11"),
+    Event(name="Thanksgiving", date="2024-11-28"),
+    Event(name="Hanukkah Begins", date="2024-12-25"),
+    Event(name="Christmas Day", date="2024-12-25"),
+    Event(name="Boxing Day", date="2024-12-26"),
+    Event(name="New Year's Eve", date="2024-12-31")
+]
+
         self.calendar = Calendar(events=[], holidays=holidays)
 
     def initUI(self):
-        self.setWindowTitle("Login/Register System")
-        self.setGeometry(100, 100, 600, 800)
+        self.setWindowTitle("News App")
+        #self.setGeometry(100, 100, 600, 800)
+        self.setFixedSize(400, 400)
 
         # Set background color to blue
         palette = self.palette()

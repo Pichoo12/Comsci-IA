@@ -32,8 +32,8 @@ class Calendar:
             next_holiday_date = next_holiday.date
             qdate = QDate(next_holiday_date.year, next_holiday_date.month, next_holiday_date.day)
             
-            # Highlight the date on the calendar widget
-            highlight_format = QTextCharFormat()
-            highlight_format.setBackground(QBrush(Qt.yellow))
-            highlight_format.setForeground(QBrush(Qt.red))
-            calendar_widget.setDateTextFormat(qdate, highlight_format)
+            # date on the calendar
+           # highlight_format = QTextCharFormat()
+           # highlight_format.setBackground(QBrush(Qt.yellow))
+           # highlight_format.setForeground(QBrush(Qt.red))
+          #  calendar_widget.setDateTextFormat(qdate, highlight_format)

@@ -84,9 +84,8 @@ class LoginRegisterApp(QWidget):
        load_users()
 
 
-       # Initialize calendar and holidays
-       holidays = [
-           Event(name="New Year's Day", date="2024-01-01"),
+   # holidays
+       holidays = [ Event(name="New Year's Day", date="2024-01-01"),
    Event(name="Martin Luther King Jr. Day", date="2024-01-15"),
    Event(name="Presidents' Day", date="2024-02-19"),
    Event(name="Valentine's Day", date="2024-02-14"),
@@ -102,8 +101,6 @@ class LoginRegisterApp(QWidget):
    Event(name="Christmas Eve", date="2024-12-24"),
    Event(name="Christmas Day", date="2024-12-25"),
    Event(name="New Year's Eve", date="2024-12-31"),
-  
-   # International Holidays
    Event(name="Chinese New Year", date="2024-02-10"),
    Event(name="Canada Day", date="2024-07-01"),
    Event(name="Bastille Day", date="2024-07-14"),
@@ -113,9 +110,8 @@ class LoginRegisterApp(QWidget):
    Event(name="Ramadan Start", date="2024-03-10"),
    Event(name="Eid al-Fitr", date="2024-04-09"),
    Event(name="Eid al-Adha", date="2024-06-17"),
-   Event(name="Yom Kippur", date="2024-10-12")
-       ]
-       self.calendar = Calendar(events=[], holidays=holidays)
+   Event(name="Yom Kippur", date="2024-10-12")]
+   self.calendar = Calendar(events=[], holidays=holidays)
 
 
    def initUI(self):
@@ -123,7 +119,7 @@ class LoginRegisterApp(QWidget):
        self.setGeometry(100, 100, 600, 350)
 
 
-       # Set background color to blue
+       #blue background
        palette = self.palette()
        palette.setColor(QPalette.Window, QColor('blue'))
        self.setPalette(palette)
@@ -132,12 +128,10 @@ class LoginRegisterApp(QWidget):
        self.stacked_widget = QStackedWidget()
 
 
-       # Login Page
+       #login page
        self.login_page = QWidget()
        self.login_layout = QVBoxLayout()
        self.login_page.setLayout(self.login_layout)
-
-
        login_title = QLabel("News International")
        login_title.setFont(QFont("Arial", 24, QFont.Bold))
        login_title.setAlignment(Qt.AlignCenter)
@@ -177,7 +171,7 @@ class LoginRegisterApp(QWidget):
        self.login_layout.setSpacing(10)
 
 
-       # Register Page
+       # register page
        self.register_page = QWidget()
        self.register_layout = QVBoxLayout()
        self.register_page.setLayout(self.register_layout)
@@ -222,17 +216,15 @@ class LoginRegisterApp(QWidget):
        self.back_to_login_button = QPushButton("Back to Login")
        self.back_to_login_button.clicked.connect(self.open_login_page)
        self.register_layout.addWidget(self.back_to_login_button)
-
-
        self.register_layout.setSpacing(10)
 
 
-       # Main Page
+       # main page
        self.main_page = QWidget()
        self.main_layout = QVBoxLayout()
 
 
-       # Add Icon to top-right corner
+       # image
        main_top_layout = QHBoxLayout()
        icon_label = QLabel()
        icon_label.setPixmap(QPixmap("Icon.PNG").scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
@@ -242,20 +234,18 @@ class LoginRegisterApp(QWidget):
 
 
        self.main_page.setLayout(self.main_layout)
-
-
        self.main_label = QLabel("Welcome to the main page!")
        self.main_layout.addWidget(self.main_label)
 
 
-       # Search Bar
+       # search 
        self.search_bar = QLineEdit()
        self.search_bar.setPlaceholderText("Search for articles...")
        self.search_bar.textChanged.connect(self.search_articles)
        self.main_layout.addWidget(self.search_bar)
 
 
-       # Category Dropdown
+       # dropdown for categories 
        self.category_dropdown = QComboBox()
        self.category_dropdown.addItem("All Categories")
        self.category_dropdown.addItem("Technology")
@@ -268,38 +258,37 @@ class LoginRegisterApp(QWidget):
        self.main_layout.addWidget(self.category_dropdown)
 
 
-       # Calendar Button
+       # calendar
        self.calendar_button = QPushButton("Show Next Holiday")
        self.calendar_button.clicked.connect(self.show_calendar)
        self.main_layout.addWidget(self.calendar_button)
 
 
-       # Article List
+       # article
        self.articles_list = QListWidget()
        self.articles_list.itemClicked.connect(self.show_article_details)
        self.main_layout.addWidget(self.articles_list)
 
 
-       # Button to view saved articles
+       # saved articles
        self.saved_articles_button = QPushButton("View Saved Articles")
        self.saved_articles_button.clicked.connect(self.view_saved_articles)
        self.main_layout.addWidget(self.saved_articles_button)
 
 
-       # Logout Button
+       # logout
        self.logout_button = QPushButton("Logout")
        self.logout_button.clicked.connect(self.logout)
        self.main_layout.addWidget(self.logout_button)
 
 
-       # Add pages to stacked widget
+       # append page
        self.stacked_widget.addWidget(self.login_page)
        self.stacked_widget.addWidget(self.register_page)
        self.stacked_widget.addWidget(self.main_page)
        self.stacked_widget.setCurrentWidget(self.login_page)
 
 
-       # Main Layout
        main_layout = QVBoxLayout()
        main_layout.addWidget(self.stacked_widget)
        self.setLayout(main_layout)

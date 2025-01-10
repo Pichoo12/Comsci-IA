@@ -11,7 +11,6 @@ class Search:
         pass
 
     def filter_out_characters(self, articles: List[Article], chars_to_filter: str) -> List[Article]:
-        # Remove specified characters from the article titles
         filtered_articles = []
         for article in articles:
             cleaned_title = ''.join([c for c in article.title if c not in chars_to_filter])

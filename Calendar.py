@@ -25,10 +25,10 @@ class Calendar:
         return min(upcoming_holidays, key=lambda x: x.date)
 
     def highlight_next_holiday(self, calendar_widget) -> None:
-        # Get the next upcoming holiday
+        # upcoming holiday
         next_holiday = self.get_next_upcoming_holiday()
         if next_holiday:
-            # Convert the holiday date to QDate
+            # Formatting
             next_holiday_date = next_holiday.date
             qdate = QDate(next_holiday_date.year, next_holiday_date.month, next_holiday_date.day)
             
